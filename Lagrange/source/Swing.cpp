@@ -1,5 +1,6 @@
 #include "Swing.hpp"
 #include "ShaderPaths.hpp"
+#include <iostream>
 #include <atlas/core/Macros.hpp>
 USING_ATLAS_GL_NS;
 GLushort numIndices, numStringIndices;
@@ -10,10 +11,16 @@ Swing::Swing():
 	stringLength(0.5f),
 	massColour{ 1.0f, 0.0f, 0.0f }, 
 	pendColour{0.0f, 0.0f, 1.0f},
-	pendulumMass(0.5f),
 	x(0.0f),
-	theta(45.0f),
-	stringColour{0.0f, 1.0f, 0.0f}
+	thetaDegrees(90.0f),
+	thetaRadians(glm::radians(thetaDegrees)),
+	pendulumMass(0.2f),
+	Mass(0.5f),
+	stringColour{0.0f, 1.0f, 0.0f},
+	thetaDot(0.0f), thetaDotDot(0.0f),
+	xDot(0.0f), xDotDot(0.0f),
+	g(-9.81f),
+	pendInit(true), stringInit(true)
 {
 	// Get the path where our shaders are stored.
 	std::string shaderDir = generated::ShaderPaths::getShaderDirectory();
@@ -61,6 +68,29 @@ void Swing::renderGeometry(atlas::math::Matrix4 projection, atlas::math::Matrix4
 	glLineWidth(1.0f);
 	mShaders[0]->disableShaders();
 }
+void Swing::updateGeometry(atlas::utils::Time const& t) {
+	GLfloat thetaDAMPING = 1.2f, xDAMPING = 1.5f;
+	thetaDotDot = ((g*glm::sin(thetaRadians) + thetaDot * xDot * glm::sin(thetaRadians) + xDotDot * glm::cos(thetaRadians)) / stringLength) - thetaDot * thetaDAMPING;
+	xDotDot = -(stringLength * pendulumMass * thetaDotDot * glm::cos(thetaRadians)) / (Mass + pendulumMass) - xDot * xDAMPING;
+
+	// ===== Euler Integration==== // Begin
+	thetaRadians = thetaRadians + t.deltaTime * thetaDot;
+	thetaDot = thetaDot + t.deltaTime * thetaDotDot;
+	x = x + t.deltaTime * xDot;
+	xDot = xDot + t.deltaTime * xDotDot;
+	if (x >= 0.9f-width ) {
+		x = 0.9f - 0.2f * width;
+		std::cout << "x: " << x << "\n";
+	}
+	else if (x <= -0.9f + width) {
+		x = -0.9f + 0.2f * width;
+	}
+	else{}
+	// ===== Euler Integration==== // End
+
+	thetaDegrees = glm::degrees(thetaRadians);
+	sendToOpenGL();
+}
 void Swing::sendToOpenGL() {
 	doMass();
 	makePend();
@@ -86,20 +116,28 @@ void Swing::doMass() {
 
 }
 void Swing::makePend() {
-	ShapeData pendulum = ObjectGenerator::makePendulum(pendColour, theta, x, yLocation, pendulumMass, stringLength);
+	ShapeData pendulum = ObjectGenerator::makePendulum(pendColour, thetaRadians, x, yLocation, pendulumMass, stringLength);
 	numIndices = pendulum.numIndices;
 	glBindBuffer(GL_ARRAY_BUFFER, pendBuffer);
 	glBufferData(GL_ARRAY_BUFFER, pendulum.vertexBufferSize(), &pendulum.vertices[0], GL_DYNAMIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pendIndiciesBuffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(GLushort), &pendulum.indices[0], GL_DYNAMIC_DRAW);
+	if (pendInit) {
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pendIndiciesBuffer);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(GLushort), &pendulum.indices[0], GL_DYNAMIC_DRAW);
+		pendInit = false;
+	}
+
 }
 void Swing::makeString() {
-	ShapeData string = ObjectGenerator::makeString(stringColour, theta, x, stringLength, yLocation);
+	ShapeData string = ObjectGenerator::makeString(stringColour, thetaRadians, x, stringLength, yLocation);
 	numStringIndices = string.numIndices;
 	glBindBuffer(GL_ARRAY_BUFFER, stringBuffer);
 	glBufferData(GL_ARRAY_BUFFER, string.vertexBufferSize(), &string.vertices[0], GL_DYNAMIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, stringIndiciesBuffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, numStringIndices * sizeof(GLushort), &string.indices[0], GL_DYNAMIC_DRAW);
+	if (stringInit) {
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, stringIndiciesBuffer);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, numStringIndices * sizeof(GLushort), &string.indices[0], GL_DYNAMIC_DRAW);
+		stringInit = false;
+	}
+
 }
 void Swing::defineVAOs() {
 	glGenVertexArrays(1, &massVao);

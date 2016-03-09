@@ -19,5 +19,9 @@ void LagrangeScene::renderScene()
 	mSwing.renderGeometry(mProjection, mView);
 }
 void LagrangeScene::updateScene(double time) {
-
+	// Handle the timing stuff here.
+	mTime.deltaTime = (float)time - mTime.currentTime;
+	mTime.totalTime += (float)time;
+	mTime.currentTime = (float)time;
+	mSwing.updateGeometry(mTime);
 }

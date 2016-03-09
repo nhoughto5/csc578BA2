@@ -4,7 +4,8 @@
 #define NUM_ARRAY_ELEMENTS(a) sizeof(a) / sizeof(*a); //Used to dynamically caculate the number of elements in an array
 
 ShapeData ObjectGenerator::makePendulum(glm::vec3 colour, GLfloat angle, GLfloat x, GLfloat y, GLfloat mass, GLfloat stringLength) {
-	angle = glm::radians(-angle);
+	//angle = glm::radians(-angle);
+	angle = -angle;
 	ShapeData ret;
 	GLfloat radius = 0.1 * mass;
 	glm::vec3 centerOfBall = glm::vec3{x, y - stringLength - radius, 0.0f};
@@ -41,7 +42,8 @@ ShapeData ObjectGenerator::makePendulum(glm::vec3 colour, GLfloat angle, GLfloat
 }
 ShapeData ObjectGenerator::makeString(glm::vec3 colour, GLfloat angle, GLfloat x, GLfloat stringLength, GLfloat y) {
 	ShapeData ret;
-	angle = glm::radians(-angle);
+	//angle = glm::radians(-angle);
+	angle = -angle;
 	std::vector<glm::vec3> vertices;
 	glm::vec3 anchorPosition = glm::vec3{ x,y,0.0f };
 	glm::vec3 connectionPoint = glm::vec3{x, y - stringLength, 0.0f};

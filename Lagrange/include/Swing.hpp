@@ -13,17 +13,18 @@ public:
     ~Swing();
 
     void renderGeometry(atlas::math::Matrix4 projection, atlas::math::Matrix4 view) override;
-
+	void updateGeometry(atlas::utils::Time const& t) override;
 private:
 	void sendToOpenGL();
 	void doMass();
 	void makePend();
 	void makeString();
 	void defineVAOs();
+	bool stringInit, pendInit;
     GLuint massVao, pendVao, stringVao;
     GLuint massBuffer, stringBuffer, pendBuffer, pendIndiciesBuffer, stringIndiciesBuffer;
-	GLfloat x, theta, stringLength;
-	GLfloat width, height, yLocation, pendulumMass, mass;
+	GLfloat x, thetaDegrees, thetaRadians, stringLength;
+	GLfloat width, height, yLocation, pendulumMass, Mass, thetaDotDot, xDotDot, thetaDot, xDot, g;
 	glm::vec3 massColour, pendColour, stringColour;
 };
 
