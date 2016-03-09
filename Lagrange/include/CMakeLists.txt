@@ -1,0 +1,9 @@
+set(INCLUDE_LIST
+    "${LAGRANGE_INCLUDE_ROOT}/LagrangeScene.hpp"
+    "${LAGRANGE_INCLUDE_ROOT}/Swing.hpp"
+    "${LAGRANGE_INCLUDE_ROOT}/Structure.hpp"
+	"${LAGRANGE_INCLUDE_ROOT}/ObjectGenerator.h"
+	"${LAGRANGE_INCLUDE_ROOT}/ShapeData.h"
+	"${LAGRANGE_INCLUDE_ROOT}/Vertex.h"
+    PARENT_SCOPE
+    )
